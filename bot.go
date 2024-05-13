@@ -58,7 +58,7 @@ func run() {
 }
 
 var game Game
-var validRoles = []string{"medic", "detective", "tanner", "mafioso", "mason"}
+var validRoles = []string{"medic", "detective", "tanner", "mafioso", "mason", "lovers"}
 
 func contains(list []string, match string) bool {
 	for _, elem := range list {
@@ -146,11 +146,13 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 			return
 		}
 		game.roles = append(game.roles, newRole)
-		discord.ChannelMessageSend(message.ChannelID, "Role added!")
 		if newRole == "mason" {
 			game.roles = append(game.roles, "mason")
 		}
-		discord.ChannelMessageSend(message.ChannelID, printRoles(game.roles))
+		if newRole == "lovers" {
+			game.roles = append(game.roles, "lovers")
+		}
+		discord.ChannelMessageSend(message.ChannelID, "Role added!\n"+printRoles(game.roles))
 
 	case strings.HasPrefix(strings.ToLower(message.Content), "!remove"):
 		if !adminCheck(message.Author.ID) {
@@ -172,8 +174,10 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 		if role == "mason" {
 			game.roles = slices.Delete(game.roles, i, i+1)
 		}
-		discord.ChannelMessageSend(message.ChannelID, "Role deleted.")
-		discord.ChannelMessageSend(message.ChannelID, printRoles(game.roles))
+		if role == "lovers" {
+			game.roles = slices.Delete(game.roles, i, i+1)
+		}
+		discord.ChannelMessageSend(message.ChannelID, "Role deleted.\n"+printRoles(game.roles))
 
 	case strings.EqualFold(message.Content, "!start"):
 		if !adminCheck(message.Author.ID) {
@@ -212,6 +216,8 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 				output += "You are one of two masons. You will learn the other mason's identity on night 1, and both of you are working with the villagers to find the mafia."
 			case "tanner":
 				output += "Convince the villagers to vote you out, and you win!\nNOTE: You do NOT win if you are \"unalived\" by the mafia."
+			case "lovers":
+				output += "You are in love with someone whom you'll meet night 1. While you are both villagers, you have a special win condition: if the two of you are the last villagers left, you will be considered the sole winners. However, if one of you is eliminated at any point in any way, the other goes as well."
 			}
 			dm, dmErr := discord.UserChannelCreate(id)
 			checkError(dmErr)
