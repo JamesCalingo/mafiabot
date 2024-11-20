@@ -1,4 +1,4 @@
-package main
+package games
 
 import (
 	"fmt"
@@ -10,31 +10,11 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/joho/godotenv"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
-var token string
-
-type Game struct {
-	isRunning bool
-	players   []string
-	roles     []string
-}
-
-func (g *Game) toggleLobby() {
-	g.isRunning = !g.isRunning
-}
-
-func (g *Game) joinGame(id string) {
-	g.players = append(g.players, id)
-}
-
-func (g *Game) clear() {
-	g.toggleLobby()
-	g.players = slices.Delete(g.players, 0, len(g.players))
-}
+var Token string
 
 func checkError(err error) {
 	if err != nil {
@@ -42,8 +22,8 @@ func checkError(err error) {
 	}
 }
 
-func run() {
-	discord, err := discordgo.New("Bot " + token)
+func Run() {
+	discord, err := discordgo.New("Bot " + Token)
 	checkError(err)
 
 	discord.AddHandler(newMessage)
@@ -231,17 +211,4 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 		discord.ChannelMessageSend(message.ChannelID, "Game cancelled. Closing lobby.")
 	}
 
-}
-
-func getToken(key string) string {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
-	return os.Getenv(key)
-}
-
-func main() {
-	token = getToken("token")
-	run()
 }
